@@ -1,12 +1,14 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { SequelizeModule } from "@nestjs/sequelize";
-import { User } from "./users/user.model";
+import { UserModel } from "./users/user.model";
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
-import { UserRoles } from "./roles/user-roles.model";
-import { Role } from "./roles/role.model";
+import { UserRolesModel } from "./roles/user-roles.model";
+import { RoleModel } from "./roles/role.model";
 import { AuthModule } from './auth/auth.module';
+import { PostsModule } from './posts/posts.module';
+import { PostModel } from "./posts/post.model";
 
 @Module({
 	controllers: [],
@@ -22,12 +24,13 @@ import { AuthModule } from './auth/auth.module';
 			username: process.env.POSTGRES_USER,
 			password: process.env.POSTGRES_PASSWORD,
 			database: process.env.POSTGRES_DB,
-			models: [User, Role, UserRoles],
+			models: [UserModel, RoleModel, UserRolesModel, PostModel],
 			autoLoadModels: true,
 		}),
+		AuthModule,
 		UsersModule,
 		RolesModule,
-		AuthModule
+		PostsModule
 	]
 })
 export class AppModule { }

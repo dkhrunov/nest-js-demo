@@ -1,10 +1,17 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './user.model';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Roles } from 'src/roles/decorators/roles-auth.decorator';
+import { RolesGuard } from 'src/roles/guards/roles.guard';
+import { AddUserRoleDto } from './dto/add-user-role.dto';
+import { BanUserDto } from './dto/ban-user.dto';
+import { UserDetailedDto } from './dto/user-detailed.dto';
+import { UserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('Пользователи')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('users')
 export class UsersController {
 
@@ -12,24 +19,37 @@ export class UsersController {
 		private usersService: UsersService,
 	) { }
 
-	@ApiOperation({ summary: 'Создание пользователя' })
-	@ApiResponse({ status: 200, type: User })
-	@Post()
-	public create(@Body() dto: CreateUserDto): Promise<User> {
-		return this.usersService.create(dto);
-	}
-
 	@ApiOperation({ summary: 'Получить всех пользователей' })
-	@ApiResponse({ status: 200, type: [User] })
+	@ApiResponse({ status: 200, type: [UserDto] })
 	@Get()
-	public getAll(): Promise<User[]> {
+	public getAll(): Promise<UserDto[]> {
 		return this.usersService.getAll();
 	}
 
 	@ApiOperation({ summary: 'Получить пользователя по идентификатору' })
-	@ApiResponse({ status: 200, type: User })
-	@Get('/:id')
-	public get(@Param('id') id: number): Promise<User> {
-		return this.usersService.get(id);
+	@ApiResponse({ status: 200, type: UserDetailedDto })
+	@Roles("ADMIN")
+	@UseGuards(RolesGuard)
+	@Get('/:userId')
+	public get(@Param('userId', ParseIntPipe) userId: number): Promise<UserDetailedDto> {
+		return this.usersService.get(userId);
+	}
+
+	@ApiOperation({ summary: 'Выдать роль' })
+	@ApiResponse({ status: 200 })
+	@Roles("ADMIN")
+	@UseGuards(RolesGuard)
+	@Patch('/role')
+	public addRole(@Body() dto: AddUserRoleDto): Promise<void> {
+		return this.usersService.addRole(dto);
+	}
+
+	@ApiOperation({ summary: 'Забанить пользователя' })
+	@ApiResponse({ status: 200 })
+	@Roles("ADMIN")
+	@UseGuards(RolesGuard)
+	@Patch('/ban')
+	public ban(@Body() dto: BanUserDto): Promise<void> {
+		return this.usersService.ban(dto);
 	}
 }

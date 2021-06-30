@@ -5,6 +5,7 @@ interface PostCreationAttrs {
 	readonly title: string;
 	readonly content: string;
 	readonly userId: number;
+	readonly image: string;
 }
 
 @Table({ tableName: 'posts' })

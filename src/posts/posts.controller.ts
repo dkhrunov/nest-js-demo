@@ -1,5 +1,6 @@
-import { Controller, UseGuards, Post, Body, Req, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, UseGuards, Post, Body, Req, Get, Param, ParseIntPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostDto } from './dto/post.dto';
@@ -15,11 +16,17 @@ export class PostsController {
 
 	@ApiOperation({ summary: 'Создание поста' })
 	@ApiResponse({ status: 200, type: PostDto })
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FileInterceptor('image'))
 	@Post()
-	public create(@Body() dto: CreatePostDto, @Req() req: any): Promise<PostDto> {
+	public create(
+		@Req() req: any,
+		@Body() dto: CreatePostDto,
+		@UploadedFile() image: Express.Multer.File
+	): Promise<PostDto> {
 		const user = req.user;
 
-		return this.postsService.create(user.id, dto);
+		return this.postsService.create(user.id, dto, image);
 	}
 
 	@ApiOperation({ summary: 'Получить все посты' })

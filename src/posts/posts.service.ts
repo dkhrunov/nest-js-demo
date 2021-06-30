@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { FilesService } from 'src/files/files.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostModel } from './post.model';
 
@@ -9,10 +10,12 @@ export class PostsService {
 	constructor(
 		@InjectModel(PostModel)
 		private postRepository: typeof PostModel,
+		private filesService: FilesService,
 	) { }
 
-	public async create(userId: number, dto: CreatePostDto): Promise<PostModel> {
-		const post = await this.postRepository.create({ userId, ...dto });
+	public async create(userId: number, dto: CreatePostDto, image: Express.Multer.File): Promise<PostModel> {
+		const fileName = image ? await this.filesService.createImage(image) : null;
+		const post = await this.postRepository.create({ userId, ...dto, image: fileName });
 
 		return post;
 	}
